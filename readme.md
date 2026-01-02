@@ -2,6 +2,7 @@
 # **2D Space Shooter**
 
 Игра тип космически шуутър, направена изцяло със **C** и **Raylib**
+<img src="https://github.com/papitochi/space-shooter/blob/main/gameplay.gif" width="400" height="400">
 
 
 ## 🎮 Контроли
