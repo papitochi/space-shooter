@@ -18,7 +18,15 @@ typedef struct {
 
 int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Space Shooter");
+    InitAudioDevice();
     SetTargetFPS(60);
+
+    Sound shot = LoadSound("pew.mp3");
+    Sound boom = LoadSound("gameOver.mp3");
+    Sound loss = LoadSound("lifeLost.mp3");
+
+    int shakeFrames = 0;
+    int playerShakeX = 0;
 
     Texture2D shipTexture = LoadTexture("spaceship.png");
 
@@ -33,10 +41,17 @@ int main(void) {
     }
 
     int score = 0;
+    int lives = 3;
     bool gameOver = false;
 
     while (!WindowShouldClose()) {
         if (!gameOver) {
+            if (shakeFrames > 0) {
+                playerShakeX = GetRandomValue(-5, 5);
+                shakeFrames--;
+            } else {
+                playerShakeX = 0;
+            }
             if (IsKeyDown(KEY_RIGHT)) player.rect.x += 8.0f;
             if (IsKeyDown(KEY_LEFT)) player.rect.x -= 8.0f;
 
@@ -44,6 +59,7 @@ int main(void) {
             if (player.rect.x > SCREEN_WIDTH - player.rect.width) player.rect.x = SCREEN_WIDTH - player.rect.width;
 
             if (IsKeyPressed(KEY_SPACE)) {
+                PlaySound(shot);
                 for (int i = 0; i < MAX_BULLETS; i++) {
                     if (!bullets[i].active) {
                         bullets[i].rect = (Rectangle){ player.rect.x + 15, player.rect.y, 10, 20 };
@@ -70,7 +86,16 @@ int main(void) {
                 }
 
                 if (CheckCollisionRecs(player.rect, enemies[i].rect)) {
-                    gameOver = true;
+                    if(lives>1) PlaySound(loss);
+                    lives--;
+                    shakeFrames = 15;
+                    enemies[i].rect.y = GetRandomValue(-1000, -100);
+                    enemies[i].rect.x = GetRandomValue(0, SCREEN_WIDTH - 40);
+                    if(lives <= 0) 
+                    {
+                        gameOver = true;
+                        PlaySound(boom);
+                    }
                 }
             }
 
@@ -88,6 +113,8 @@ int main(void) {
         } else {
             if (IsKeyPressed(KEY_R)) {
                 gameOver = false;
+                shakeFrames = 0;
+                playerShakeX = 0;
                 score = 0;
                 player.rect.x = SCREEN_WIDTH/2 - 20;
                 for(int i = 0; i < MAX_ENEMIES; i++) {
@@ -95,6 +122,7 @@ int main(void) {
                     enemies[i].rect.x = GetRandomValue(0, SCREEN_WIDTH - 40);
                 }
                 for(int i = 0; i < MAX_BULLETS; i++) bullets[i].active = false;
+                lives = 3;
             }
         }
 
@@ -104,7 +132,7 @@ int main(void) {
         if (!gameOver) {
             DrawTexturePro(shipTexture, 
                            (Rectangle){0, 0, (float)shipTexture.width, (float)shipTexture.height}, 
-                           player.rect, 
+                           (Rectangle){player.rect.x+playerShakeX,player.rect.y,player.rect.width,player.rect.height}, 
                            (Vector2){0, 0}, 
                            0.0f, 
                            WHITE);
@@ -118,6 +146,7 @@ int main(void) {
             }
 
             DrawText(TextFormat("SCORE: %4d", score), 20, 20, 20, WHITE);
+            DrawText(TextFormat("LIVES: %3d", lives), 20, 40, 20, WHITE);
         } else {
             DrawText("GAME OVER", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 - 30, 40, WHITE);
             DrawText("Press 'R' to Restart", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 + 20, 20, GRAY);
@@ -127,6 +156,10 @@ int main(void) {
     }
 
     UnloadTexture(shipTexture);
+    UnloadSound(shot);
+    UnloadSound(loss);
+    UnloadSound(boom);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
