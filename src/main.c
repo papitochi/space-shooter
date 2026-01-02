@@ -143,13 +143,16 @@ int main(void) {
         ClearBackground(BLACK);
 
         if (!gameOver) {
+            // Когато героя поеме удар, пресвятква в червено
+            Color playerTint = (shakeFrames>0) ? RED : WHITE;
+
             // Рисуване на играча, враговете и текста
             DrawTexturePro(shipTexture, 
                            (Rectangle){0, 0, (float)shipTexture.width, (float)shipTexture.height}, 
                            (Rectangle){player.rect.x+playerShakeX,player.rect.y,player.rect.width,player.rect.height}, 
                            (Vector2){0, 0}, 
                            0.0f, 
-                           WHITE);
+                           playerTint);
             
             for (int i = 0; i < MAX_BULLETS; i++) {
                 if (bullets[i].active) DrawRectangleRec(bullets[i].rect, bullets[i].color);
@@ -160,7 +163,7 @@ int main(void) {
             }
 
             DrawText(TextFormat("SCORE: %4d", score), 20, 20, 20, WHITE);
-            DrawText(TextFormat("LIVES: %3d", lives), SCREEN_WIDTH-125, 20, 20, WHITE);
+            DrawText(TextFormat("LIVES: %3d", lives), SCREEN_WIDTH-125, 20, 20, playerTint);
         } else {
             // Екран за край на играта
             DrawText("GAME OVER", SCREEN_WIDTH/2 - 125, SCREEN_HEIGHT/2 - 30, 40, WHITE);
